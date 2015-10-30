@@ -2,12 +2,13 @@ import xml.etree.ElementTree as ET
 import pyhdb
 import pyhdb.exceptions
 import os
-import yaml
+import json
 import math
+import sys
 
 
 CHUNK_SIZE = 1000
-filepath = os.getcwd()+"/APIforDDICorpus/DDICorpus/Train/DrugBank/"
+filepath = sys.argv[1]
 files = []
 
 def insert_many(statement, values):
@@ -24,66 +25,68 @@ def insert_many(statement, values):
             print e
 
 def insert_content(filename):
+    print filename
     documents = []
-    sentences = []
-    entities = []
+    # dict (name(lowercased), type) -> entity_id
+    name_to_entity = {}
+    # dict new_id -> [old_id1, old_id2, ...]
+    old_to_new_entity = {}
+    e_id_counter = 0
+
+    doc_entities = []
     pairs = []
-    offsets = []
 
     tree = ET.parse(filename)
     root = tree.getroot()
     for document in root.iter('document'):
         doc_id = document.get('id')
-        documents.append( (doc_id,) )
+        doc_text = ""
         for sentence in document.findall('sentence'):
-            sentence_id = sentence.get('id')
-            sentence_text = sentence.get('text')
-            sentences.append((sentence_id, sentence_text, doc_id))
+            # join all sentences of a document
+            doc_text = ' '.join([doc_text, sentence.get('text')])
+
             for entity in sentence.findall('entity'):
-                entity_id = entity.get('id')
-                entity_offsets = entity.get('charOffset').split(';', 1)
-
-                for offset in entity_offsets:
-                    offset_start, offset_end = offset.split('-')
-                    offset_start = int(offset_start)
-                    offset_end = int(offset_end)
-                    offsets.append((offset_start, offset_end, entity_id))
-
+                entity_text = entity.get('text').lower()
                 entity_type = entity.get('type')
-                entity_text = entity.get('text')
-                entities.append((
-                    entity_id,
-                    entity_type,
-                    entity_text,
-                    sentence_id))
 
+                # find or create entity
+                if (entity_text, entity_type) in name_to_entity:
+                    entity_obj = name_to_entity[entity_text, entity_type]
+                else:
+                    entity_obj = (e_id_counter, entity_text, entity_type)
+                    e_id_counter += 1
+                    name_to_entity[entity_text, entity_type] = entity_obj
+
+                old_to_new_entity[entity.get('id')] = entity_obj[0]
+
+                offsets = entity.get('charOffset').split(';', 1)
+                for offset in offsets:
+                    offset_start, offset_end = map(int, offset.split('-'))
+                    doc_entities.append((doc_id, entity_obj[0], offset_start, offset_end))
+                    
             for pair in sentence.findall('pair'):
-                pair_id = pair.get('id')
-                pair_e1 = pair.get('e1')
-                pair_e2 = pair.get('e2')
+                pair_e1 = old_to_new_entity[pair.get('e1')]
+                pair_e2 = old_to_new_entity[pair.get('e2')]
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_id, pair_e1, pair_e2, pair_ddi, pair_type))
-
-    insert_many("INSERT INTO mp12015.DOCUMENT VALUES (?)", documents)
-    insert_many("INSERT INTO mp12015.SENTENCE VALUES (?,?,?)", sentences)
-
-    insert_many("INSERT INTO mp12015.ENTITY VALUES(?,?,?,?)", entities)
-    insert_many("INSERT INTO mp12015.PAIR VALUES (?,?,?,?,?)", pairs)
-    insert_many("INSERT INTO mp12015.OFFSET VALUES (?,?,?)", offsets)
+                pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
+        documents.append( (doc_id, doc_text) )
+    insert_many("INSERT INTO LEARNING_TO_NOTE.DOCUMENTS VALUES (?,?)", documents)
+    insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES(?,?,?)", name_to_entity.values())
+    insert_many("INSERT INTO LEARNING_TO_NOTE.DOC_ENTITIES VALUES(?,?,?,?)", doc_entities)
+    insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES (?,?,?,?)", pairs)
     connection.commit()
 
 
-
 #Load credentials
-f = open('config.yaml', 'r')
-config = yaml.load(f)
+with open("secrets.json") as f:
+    secrets = json.load(f)
 
 connection = pyhdb.connect(
-    host=config['credentials']['host'],
-    port=config['credentials']['port'],
-    user=config['credentials']['user'],
-    password=config['credentials']['password']
+    host=secrets['host'],
+    port=secrets['port'],
+    user=secrets['username'],
+    password=secrets['password']
 )
 
 cursor = connection.cursor()
