@@ -10,6 +10,7 @@ import sys
 CHUNK_SIZE = 1000
 filepath = sys.argv[1]
 files = []
+e_id_counter = 0
 
 def insert_many(statement, values):
     if len(values) > 0:
@@ -25,13 +26,13 @@ def insert_many(statement, values):
             print e
 
 def insert_content(filename):
+    global e_id_counter
     print filename
     documents = []
     # dict (name(lowercased), type) -> entity_id
     name_to_entity = {}
     # dict new_id -> [old_id1, old_id2, ...]
     old_to_new_entity = {}
-    e_id_counter = 0
 
     doc_entities = []
     pairs = []
@@ -48,6 +49,7 @@ def insert_content(filename):
             for entity in sentence.findall('entity'):
                 entity_text = entity.get('text').lower()
                 entity_type = entity.get('type')
+                old_entity_id = entity.get('id')
 
                 # find or create entity
                 if (entity_text, entity_type) in name_to_entity:
@@ -62,18 +64,18 @@ def insert_content(filename):
                 offsets = entity.get('charOffset').split(';', 1)
                 for offset in offsets:
                     offset_start, offset_end = map(int, offset.split('-'))
-                    doc_entities.append((doc_id, entity_obj[0], offset_start, offset_end))
-                    
+                    doc_entities.append((old_entity_id, doc_id, entity_obj[0], offset_start, offset_end))
+
             for pair in sentence.findall('pair'):
-                pair_e1 = old_to_new_entity[pair.get('e1')]
-                pair_e2 = old_to_new_entity[pair.get('e2')]
+                pair_e1 = pair.get('e1')
+                pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
                 pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
         documents.append( (doc_id, doc_text) )
     insert_many("INSERT INTO LEARNING_TO_NOTE.DOCUMENTS VALUES (?,?)", documents)
     insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES(?,?,?)", name_to_entity.values())
-    insert_many("INSERT INTO LEARNING_TO_NOTE.DOC_ENTITIES VALUES(?,?,?,?)", doc_entities)
+    insert_many("INSERT INTO LEARNING_TO_NOTE.DOC_ENTITIES VALUES(?,?,?,?,?)", doc_entities)
     insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES (?,?,?,?)", pairs)
     connection.commit()
 

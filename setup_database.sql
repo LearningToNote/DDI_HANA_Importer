@@ -12,19 +12,18 @@ CREATE COLUMN TABLE "DOCUMENTS" (
               );
 
 CREATE COLUMN TABLE "ENTITIES" (
-                "ID" VARCHAR(255) PRIMARY KEY,
+                "ID" INT PRIMARY KEY,
                 "TYPE" VARCHAR(255),
                 "TEXT" VARCHAR(255)
               );
 
 CREATE COLUMN TABLE "DOC_ENTITIES" (
                 "ID" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                "E_ID" VARCHAR(255),
                 "DOC_ID" VARCHAR(255),
-                "ENTITY_ID" VARCHAR(255),
+                "ENTITY_ID" INT,
                 "START" INT,
-                "END" INT,
-                FOREIGN KEY("DOC_ID") REFERENCES "DOCUMENTS" ON UPDATE CASCADE,
-                FOREIGN KEY("ENTITY_ID") REFERENCES "ENTITIES" ON UPDATE CASCADE
+                "END" INT
               );
 
 CREATE COLUMN TABLE "PAIRS" (
@@ -32,7 +31,11 @@ CREATE COLUMN TABLE "PAIRS" (
                 "E1_ID" VARCHAR(255),
                 "E2_ID" VARCHAR(255),
                 "DDI" TINYINT,
-                "TYPE" VARCHAR(255),
-                FOREIGN KEY("E1_ID") REFERENCES "ENTITIES" ON UPDATE CASCADE,
-                FOREIGN KEY("E2_ID") REFERENCES "ENTITIES" ON UPDATE CASCADE
+                "TYPE" VARCHAR(255)
               );
+
+
+TRUNCATE TABLE "PAIRS";
+TRUNCATE TABLE "DOC_ENTITIES";
+TRUNCATE TABLE "ENTITIES";
+TRUNCATE TABLE "DOCUMENTS";
