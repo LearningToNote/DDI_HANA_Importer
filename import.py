@@ -32,6 +32,7 @@ def insert_content(filename):
         doc_text = ""
         for sentence in document.findall('sentence'):
             # join all sentences of a document
+            text_offset = len(doc_text) + 1
             doc_text = ' '.join([doc_text, sentence.get('text')])
 
             for entity in sentence.findall('entity'):
@@ -52,6 +53,8 @@ def insert_content(filename):
                 offsets = entity.get('charOffset').split(';', 1)
                 for offset in offsets:
                     offset_start, offset_end = map(int, offset.split('-'))
+                    offset_start += text_offset
+                    offset_end += text_offset
                     doc_entities.append((old_entity_id, doc_id, entity_obj[0], offset_start, offset_end))
 
             for pair in sentence.findall('pair'):
