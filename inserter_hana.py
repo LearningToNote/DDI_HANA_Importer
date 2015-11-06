@@ -1,3 +1,6 @@
+# this assumes a schema db called LEARNING_TO_NOTE is created
+# use db_setup/hana.sql
+
 import pyhdb
 import pyhdb.exceptions
 import json

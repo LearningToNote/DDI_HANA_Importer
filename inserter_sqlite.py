@@ -1,3 +1,7 @@
+# this assumes a db called testdb is created
+# use db_setup/sqlite.sql
+# cat db_setup/sqlite.sql | sqlite3 testdb
+
 import sqlite3
 import math
 
