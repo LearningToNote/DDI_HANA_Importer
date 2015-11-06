@@ -12,18 +12,18 @@ filepath = sys.argv[1]
 files = []
 e_id_counter = 0
 
-documents = []
-# dict (name(lowercased), type) -> entity_id
-name_to_entity = {}
-# dict new_id -> [old_id1, old_id2, ...]
-old_to_new_entity = {}
-
-doc_entities = []
-pairs = []
 
 def insert_content(filename):
     global e_id_counter
     print filename
+
+    documents = []
+    # dict (name(lowercased), type) -> entity_id
+    name_to_entity = {}
+    # dict new_id -> [old_id1, old_id2, ...]
+    old_to_new_entity = {}
+    doc_entities = []
+    pairs = []
 
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -65,6 +65,8 @@ def insert_content(filename):
                 pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
         documents.append( (doc_id, doc_text) )
 
+        inserter.store(documents, name_to_entity.values(), doc_entities, pairs)
+
 
 #Looks for all files in the directory with .xml in it
 for filename in os.listdir(filepath):
@@ -73,4 +75,3 @@ for filename in os.listdir(filepath):
 
 for filename in files:
     insert_content(filename)
-inserter.store(documents, name_to_entity.values(), doc_entities, pairs)
