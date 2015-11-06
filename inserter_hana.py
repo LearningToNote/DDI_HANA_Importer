@@ -34,9 +34,9 @@ def insert_many(statement, values):
         except pyhdb.exceptions.DatabaseError as e:
             print e
 
-def store(documents, entities, doc_entities, pairs):
+def store(documents, entities, pairs, offsets):
     insert_many("INSERT INTO LEARNING_TO_NOTE.DOCUMENTS VALUES(?,?)", documents)
     insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES(?,?,?)", entities)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.DOC_ENTITIES VALUES(?,?,?,?,?)", doc_entities)
     insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES(?,?,?,?)", pairs)
+    insert_many("INSERT INTO LEARNING_TO_NOTE.OFFSETS VALUES(?,?,?)", offsets)
     connection.commit()
