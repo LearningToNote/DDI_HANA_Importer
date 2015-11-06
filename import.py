@@ -28,12 +28,12 @@ def insert_content(filename):
     tree = ET.parse(filename)
     root = tree.getroot()
     for document in root.iter('document'):
+        text_offset = 0
         doc_id = document.get('id')
-        doc_text = ""
+        sentences = []
         for sentence in document.findall('sentence'):
-            # join all sentences of a document
-            text_offset = len(doc_text) + 1
-            doc_text = ' '.join([doc_text, sentence.get('text')])
+            text = sentence.get('text')
+            sentences.append(text)
 
             for entity in sentence.findall('entity'):
                 entity_text = entity.get('text').lower()
@@ -54,7 +54,7 @@ def insert_content(filename):
                 for offset in offsets:
                     offset_start, offset_end = map(int, offset.split('-'))
                     offset_start += text_offset
-                    offset_end += text_offset
+                    offset_end += text_offset + 1 # end offsets in DDI are offset by 1
                     doc_entities.append((old_entity_id, doc_id, entity_obj[0], offset_start, offset_end))
 
             for pair in sentence.findall('pair'):
@@ -63,7 +63,9 @@ def insert_content(filename):
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
                 pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
-        documents.append( (doc_id, doc_text) )
+
+            text_offset += len(text) + 1
+        documents.append( (doc_id, ' '.join(sentences)) )
 
         inserter.store(documents, name_to_entity.values(), doc_entities, pairs)
 
