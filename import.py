@@ -1,41 +1,29 @@
 import xml.etree.ElementTree as ET
-import pyhdb
-import pyhdb.exceptions
 import os
-import json
-import math
 import sys
+import importlib
 
+if len(sys.argv) > 2:
+    inserter = importlib.import_module(sys.argv[2])
+else:
+    import inserter_hana as inserter
 
-CHUNK_SIZE = 1000
 filepath = sys.argv[1]
 files = []
 e_id_counter = 0
 
-def insert_many(statement, values):
-    if len(values) > 0:
-        number_of_chunks = int(math.ceil(len(values)/float(CHUNK_SIZE)))
+documents = []
+# dict (name(lowercased), type) -> entity_id
+name_to_entity = {}
+# dict new_id -> [old_id1, old_id2, ...]
+old_to_new_entity = {}
 
-        try:
-            for i in range(number_of_chunks):
-                cursor.executemany(
-                    statement,
-                    values[i*CHUNK_SIZE:i*CHUNK_SIZE+CHUNK_SIZE])
-
-        except pyhdb.exceptions.DatabaseError as e:
-            print e
+doc_entities = []
+pairs = []
 
 def insert_content(filename):
     global e_id_counter
     print filename
-    documents = []
-    # dict (name(lowercased), type) -> entity_id
-    name_to_entity = {}
-    # dict new_id -> [old_id1, old_id2, ...]
-    old_to_new_entity = {}
-
-    doc_entities = []
-    pairs = []
 
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -73,25 +61,7 @@ def insert_content(filename):
                 pair_type = pair.get('type')
                 pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
         documents.append( (doc_id, doc_text) )
-    insert_many("INSERT INTO LEARNING_TO_NOTE.DOCUMENTS VALUES (?,?)", documents)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES(?,?,?)", name_to_entity.values())
-    insert_many("INSERT INTO LEARNING_TO_NOTE.DOC_ENTITIES VALUES(?,?,?,?,?)", doc_entities)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES (?,?,?,?)", pairs)
-    connection.commit()
 
-
-#Load credentials
-with open("secrets.json") as f:
-    secrets = json.load(f)
-
-connection = pyhdb.connect(
-    host=secrets['host'],
-    port=secrets['port'],
-    user=secrets['username'],
-    password=secrets['password']
-)
-
-cursor = connection.cursor()
 
 #Looks for all files in the directory with .xml in it
 for filename in os.listdir(filepath):
@@ -100,3 +70,4 @@ for filename in os.listdir(filepath):
 
 for filename in files:
     insert_content(filename)
+inserter.store(documents, name_to_entity.values(), doc_entities, pairs)

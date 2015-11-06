@@ -1,6 +1,7 @@
 .idea/
 venv/
 secrets.json
+testdb
 
 
 # Byte-compiled / optimized / DLL files
