@@ -18,8 +18,7 @@ def insert_content(filename):
     print filename
 
     documents = []
-    # dict (name(lowercased), type) -> entity_id
-    name_to_entity = {}
+    entities = []
     # dict new_id -> [old_id1, old_id2, ...]
     old_to_new_entity = {}
     doc_entities = []
@@ -40,14 +39,10 @@ def insert_content(filename):
                 entity_type = entity.get('type')
                 old_entity_id = entity.get('id')
 
-                # find or create entity
-                if (entity_text, entity_type) in name_to_entity:
-                    entity_obj = name_to_entity[entity_text, entity_type]
-                else:
-                    entity_obj = (e_id_counter, entity_text, entity_type)
-                    e_id_counter += 1
-                    name_to_entity[entity_text, entity_type] = entity_obj
+                entity_obj = (e_id_counter, entity_type, entity_text)
+                e_id_counter += 1
 
+                entities.append(entity_obj)
                 old_to_new_entity[entity.get('id')] = entity_obj[0]
 
                 offsets = entity.get('charOffset').split(';', 1)
@@ -58,8 +53,8 @@ def insert_content(filename):
                     doc_entities.append((old_entity_id, doc_id, entity_obj[0], offset_start, offset_end))
 
             for pair in sentence.findall('pair'):
-                pair_e1 = pair.get('e1')
-                pair_e2 = pair.get('e2')
+                pair_e1 = str(old_to_new_entity[pair.get('e1')])
+                pair_e2 = str(old_to_new_entity[pair.get('e2')])
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
                 pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
@@ -67,7 +62,7 @@ def insert_content(filename):
             text_offset += len(text) + 1
         documents.append( (doc_id, ' '.join(sentences)) )
 
-        inserter.store(documents, name_to_entity.values(), doc_entities, pairs)
+        inserter.store(documents, entities, doc_entities, pairs)
 
 
 #Looks for all files in the directory with .xml in it
