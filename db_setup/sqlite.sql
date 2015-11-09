@@ -10,7 +10,7 @@ CREATE TABLE "DOCUMENTS" (
               );
 
 CREATE TABLE "ENTITIES" (
-                "ID" INT PRIMARY KEY AUTOINCREMENT,
+                "ID" VARCHAR(255) PRIMARY KEY,
                 "DOC_ID" VARCHAR(255),
                 "TYPE" VARCHAR(255)
               );
@@ -18,7 +18,7 @@ CREATE TABLE "ENTITIES" (
 CREATE TABLE "OFFSETS" (
                 "START" INT,
                 "END" INT,
-                "ENTITY_ID" INT
+                "ENTITY_ID" VARCHAR(255)
               );
 
 CREATE TABLE "PAIRS" (

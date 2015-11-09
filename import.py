@@ -21,7 +21,6 @@ def insert_content(filename):
     entities = []
     pairs = []
     offsets = []
-    old_to_new_entity_id = {}
 
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -35,10 +34,8 @@ def insert_content(filename):
 
             for entity in sentence.findall('entity'):
                 entity_type = entity.get('type')
-
-                entity_obj = (e_id_counter, doc_id, entity_type)
-                old_to_new_entity_id[entity.get('id')] = e_id_counter
-                e_id_counter += 1
+                e_id = entity.get('id')
+                entity_obj = (e_id, doc_id, entity_type)
                 entities.append(entity_obj)
 
                 offset_list = entity.get('charOffset').split(';')
@@ -49,8 +46,8 @@ def insert_content(filename):
                     offsets.append((offset_start, offset_end, entity_obj[0]))
 
             for pair in sentence.findall('pair'):
-                pair_e1 = str(old_to_new_entity_id[pair.get('e1')])
-                pair_e2 = str(old_to_new_entity_id[pair.get('e2')])
+                pair_e1 = pair.get('e1')
+                pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
                 pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
