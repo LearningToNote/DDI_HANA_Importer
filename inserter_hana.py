@@ -42,7 +42,7 @@ def store_user(id, name, token):
 def store(documents, user_documents, entities, pairs, offsets):
     insert_many("INSERT INTO LEARNING_TO_NOTE.DOCUMENTS VALUES(?,?)", documents)
     insert_many("INSERT INTO LEARNING_TO_NOTE.USER_DOCUMENTS VALUES(?,?,?,?,?,?)", user_documents)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES(?,?,?)", entities)
+    insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES(?,?,?,?)", entities)
     insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES(?,?,?,?)", pairs)
     insert_many("INSERT INTO LEARNING_TO_NOTE.OFFSETS VALUES(?,?,?)", offsets)
     connection.commit()

@@ -2,11 +2,9 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 import importlib
+import datetime
 
-if len(sys.argv) > 2:
-    inserter = importlib.import_module(sys.argv[2])
-else:
-    import inserter_hana as inserter
+import inserter_hana as inserter
 
 USERNAME = "DDI-IMPORTER"
 
@@ -42,8 +40,9 @@ for filename in files:
 
             for entity in sentence.findall('entity'):
                 entity_type = entity.get('type')
+                entity_text = entity.get('text')
                 e_id = entity.get('id')
-                entity_obj = (e_id, user_doc_id, entity_type)
+                entity_obj = (e_id, user_doc_id, entity_type, entity_text)
                 entities.append(entity_obj)
 
                 offset_list = entity.get('charOffset').split(';')
@@ -64,6 +63,6 @@ for filename in files:
 
         text = ' '.join(sentences)
         documents.append( (doc_id, text) )
-        user_documents.append( (user_doc_id, USERNAME, doc_id, 1, None, None) )
+        user_documents.append( (user_doc_id, USERNAME, doc_id, 1, datetime.datetime.now(), datetime.datetime.now()) )
 
         inserter.store(documents, user_documents, entities, pairs, offsets)
