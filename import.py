@@ -12,6 +12,8 @@ filepath = sys.argv[1]
 files = []
 e_id_counter = 0
 
+types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
+inserter.insert_types(map(lambda item: (item[1], None, None, None, item[0]), types.items()))
 
 inserter.store_user(USERNAME, "DDI", "")
 for filename in os.listdir(filepath):
@@ -42,7 +44,7 @@ for filename in files:
                 entity_type = entity.get('type')
                 entity_text = entity.get('text')
                 e_id = entity.get('id')
-                entity_obj = (e_id, user_doc_id, entity_type, entity_text)
+                entity_obj = (e_id, user_doc_id, types[entity_type], entity_type, entity_text)
                 entities.append(entity_obj)
 
                 offset_list = entity.get('charOffset').split(';')
@@ -57,7 +59,7 @@ for filename in files:
                 pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_e1, pair_e2, pair_ddi, pair_type))
+                pairs.append((pair_e1, pair_e2, pair_ddi, None, pair_type))
 
             text_offset += len(sentence_text) + 1
 
