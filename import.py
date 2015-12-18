@@ -52,14 +52,14 @@ for filename in files:
                     offset_start, offset_end = map(int, offset.split('-'))
                     offset_start += text_offset
                     offset_end += text_offset + 1 # end offsets in DDI are offset by 1
-                    offsets.append((offset_start, offset_end, entity_obj[0]))
+                    offsets.append((offset_start, offset_end, entity_obj[0], user_doc_id))
 
             for pair in sentence.findall('pair'):
                 pair_e1 = pair.get('e1')
                 pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_e1, pair_e2, pair_ddi, None, pair_type))
+                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, None, pair_type))
 
             text_offset += len(sentence_text) + 1
 
