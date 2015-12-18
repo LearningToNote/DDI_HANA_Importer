@@ -1,6 +1,4 @@
-.idea/
-venv/
-secrets.json
+DDICorpus/
 
 
 # Byte-compiled / optimized / DLL files

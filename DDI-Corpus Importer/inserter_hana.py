@@ -10,7 +10,7 @@ import pyhdb.exceptions
 CHUNK_SIZE = 1000
 
 #Load credentials
-with open("secrets.json") as f:
+with open("../secrets.json") as f:
     secrets = json.load(f)
 
 connection = pyhdb.connect(
