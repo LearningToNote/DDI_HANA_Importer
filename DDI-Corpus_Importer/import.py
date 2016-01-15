@@ -12,10 +12,13 @@ filepath = sys.argv[1]
 files = []
 e_id_counter = 0
 
+print "Inserting types..."
 types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
-inserter.insert_types(map(lambda item: (item[1], None, None, None, item[0]), types.items()))
+inserter.insert_types(map(lambda item: (item[1], "DDI-" + item[0].encode('utf-8').strip(), "DDI-1", "DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items()))
+print "Done.\n Inserting User..."
 
 inserter.store_user(USERNAME, "DDI", "")
+print "Done."
 for filename in os.listdir(filepath):
     if (".xml" in filename):
         files.append(filepath + filename)
