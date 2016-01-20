@@ -17,8 +17,9 @@ types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
 inserter.insert_types(map(lambda item: (item[1], "DDI-" + item[0].encode('utf-8').strip(), "DDI-1", "DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items()))
 print "Done.\n Inserting User..."
 
-inserter.store_user(USERNAME, "DDI", "")
+inserter.store_user(USERNAME, "DDI", "", "Drug-Drug Interaction Corpus Importer", "")
 print "Done."
+
 for filename in os.listdir(filepath):
     if (".xml" in filename):
         files.append(filepath + filename)
