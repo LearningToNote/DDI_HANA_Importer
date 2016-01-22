@@ -16,7 +16,7 @@ if len(sys.argv) < 4:
 
 initial = sys.argv[1] in ['true', 'True', '1', 'y', 'yes']
 USERNAME = sys.argv[2]
-filepath = sys.argv[3]
+filepath = os.path.join(sys.argv[3], '')
 files = []
 e_id_counter = 0
 types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
