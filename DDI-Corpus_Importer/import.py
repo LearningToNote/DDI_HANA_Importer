@@ -20,12 +20,15 @@ filepath = sys.argv[3]
 files = []
 e_id_counter = 0
 types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
+relation_types = {'mechanism' : 4, 'effect' : 5, 'advise' : 6, 'int' : 7}
 
 if initial:
     print "Inserting types..."
 
     tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-1", u"DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items())
+    relation_tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-R-1", u"DDI-Relations", item[0].encode('utf-8').strip()), relation_types.items())
     inserter.insert_types(tuples)
+    inserter.insert_types(relation_tuples)
     print "Done."
 
     print "Inserting User..."
@@ -75,7 +78,7 @@ for filename in files:
                 pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, None, pair_type))
+                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, relation_types[pair_type], pair_type))
 
             text_offset += len(sentence_text) + 1
 
