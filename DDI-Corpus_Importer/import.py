@@ -7,14 +7,16 @@ import datetime
 import inserter_hana as inserter
 
 
-if len(sys.argv) < 3:
-    print 'Usage: python import.py <initial> <path>'
+if len(sys.argv) < 4:
+    print 'Usage: python import.py <initial> <username> <path>'
+    print '\t initial: whether types an users should be created'
+    print '\t username: name of importer user, e.g. DDI-IMPORTER'
+    print '\t path: path to DDI xml files, e.g. ../../DDICorpus/Train/DrugBank/'
     exit()
 
-USERNAME = "DDI-IMPORTER"
 initial = sys.argv[1] in ['true', 'True', '1', 'y', 'yes']
-
-filepath = sys.argv[2]
+USERNAME = sys.argv[2]
+filepath = sys.argv[3]
 files = []
 e_id_counter = 0
 types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
