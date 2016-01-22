@@ -10,7 +10,7 @@ import inserter_hana as inserter
 if len(sys.argv) < 3:
     print 'Usage: python import.py <initial> <path>'
     exit()
-    
+
 USERNAME = "DDI-IMPORTER"
 initial = sys.argv[1] in ['true', 'True', '1', 'y', 'yes']
 
@@ -22,9 +22,8 @@ types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
 if initial:
     print "Inserting types..."
 
-
-
-    inserter.insert_types(map(lambda item: (item[1], unicode(u"DDI-" + item[0]).strip(), u"DDI-1", u"DrugDrugInteraction", unicode(item[0]).strip()), types.items()))
+    tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-1", u"DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items())
+    inserter.insert_types(tuples)
     print "Done."
 
     print "Inserting User..."

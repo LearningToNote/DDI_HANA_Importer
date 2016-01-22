@@ -40,7 +40,6 @@ def store_user(id, name, token, description, image):
     connection.commit()
 
 def insert_types(types):
-    print types
     insert_many("INSERT INTO LEARNING_TO_NOTE.TYPES VALUES (?,?,?,?,?)", types)
     connection.commit()
 
