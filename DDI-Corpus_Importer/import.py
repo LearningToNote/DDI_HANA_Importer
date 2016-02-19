@@ -6,19 +6,34 @@ import datetime
 
 import inserter_hana as inserter
 
-USERNAME = "DDI-IMPORTER"
 
-filepath = sys.argv[1]
+if len(sys.argv) < 4:
+    print 'Usage: python import.py <initial> <username> <path>'
+    print '\t initial: whether types an users should be created'
+    print '\t username: name of importer user, e.g. DDI-IMPORTER'
+    print '\t path: path to DDI xml files, e.g. ../../DDICorpus/Train/DrugBank/'
+    exit()
+
+initial = sys.argv[1] in ['true', 'True', '1', 'y', 'yes']
+USERNAME = sys.argv[2]
+filepath = os.path.join(sys.argv[3], '')
 files = []
 e_id_counter = 0
-
-print "Inserting types..."
 types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
-inserter.insert_types(map(lambda item: (item[1], "DDI-" + item[0].encode('utf-8').strip(), "DDI-1", "DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items()))
-print "Done.\n Inserting User..."
+relation_types = {'mechanism' : 4, 'effect' : 5, 'advise' : 6, 'int' : 7}
 
-inserter.store_user(USERNAME, "DDI", "", "Drug-Drug Interaction Corpus Importer", "")
-print "Done."
+if initial:
+    print "Inserting types..."
+
+    tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-1", u"DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items())
+    relation_tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-R-1", u"DDI-Relations", item[0].encode('utf-8').strip()), relation_types.items())
+    inserter.insert_types(tuples)
+    inserter.insert_types(relation_tuples)
+    print "Done."
+
+    print "Inserting User..."
+    inserter.store_user(USERNAME, "DDI", "", "Drug-Drug Interaction Corpus Importer", "")
+    print "Done."
 
 for filename in os.listdir(filepath):
     if (".xml" in filename):
@@ -63,7 +78,7 @@ for filename in files:
                 pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, None, pair_type))
+                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, relation_types[pair_type], pair_type))
 
             text_offset += len(sentence_text) + 1
 

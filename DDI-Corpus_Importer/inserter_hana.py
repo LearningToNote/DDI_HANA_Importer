@@ -35,8 +35,8 @@ def insert_many(statement, values):
         except pyhdb.exceptions.DatabaseError as e:
             print e
 
-def store_user(id, name, token):
-    cursor.execute("INSERT INTO LEARNING_TO_NOTE.USERS VALUES(?,?,?)", (id, name, token))
+def store_user(id, name, token, description, image):
+    cursor.execute("INSERT INTO LEARNING_TO_NOTE.USERS VALUES(?,?,?,?,?)", (id, name, token, description, image))
     connection.commit()
 
 def insert_types(types):
