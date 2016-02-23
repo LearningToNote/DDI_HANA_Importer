@@ -20,9 +20,10 @@ CREATE COLUMN TABLE "TASKS" (
 --   AUTHOR     optionally specify who's in charge
 
 DROP PROCEDURE add_task;
-CREATE PROCEDURE add_task(IN task_name nvarchar(255), IN table_name nvarchar(255), IN er_analysis_config nvarchar(255), IN author nvarchar(255)) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE add_task(IN task_name nvarchar(255), IN table_name nvarchar(255), IN er_analysis_config nvarchar(255), IN author nvarchar(255), OUT task_id INT) LANGUAGE SQLSCRIPT AS
 BEGIN
     INSERT INTO TASKS (name, domain, config, author) VALUES (task_name, table_name, er_analysis_config, author);
+    SELECT MAX(id) INTO task_id FROM TASKS;
     EXECUTE IMMEDIATE 'CREATE COLUMN TABLE ' || table_name || ' (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB, ER_TEXT NCLOB)';
     EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX INDEX_' || table_name || ' ON "' || table_name || '"("TEXT") LANGUAGE DETECTION (''EN'') ASYNC PHRASE INDEX RATIO 0.0 CONFIGURATION ''LINGANALYSIS_FULL'' SEARCH ONLY OFF FAST PREPROCESS OFF TEXT ANALYSIS ON TOKEN SEPARATORS ''\/;,.:-_()[]<>!?*@+{}="&#$~|''';
     EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
