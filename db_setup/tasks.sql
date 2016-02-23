@@ -16,15 +16,16 @@ CREATE COLUMN TABLE "TASKS" (
 --   NAME       Some user-friendly name for the task
 --   DOMAIN     Name of the table and part of the name of the accompanying full text index
 --              -> Table: "BIO_TEXTS", Full Text Index: "INDEX_BIO_TEXTS", Index Output: "$TA_INDEX_BIO_TEXTS"
---   CONFIG     Text analysis configuration to use for the full text index
+--   CONFIG     Text analysis configuration to use for the entity recognition full text index
 --   AUTHOR     optionally specify who's in charge
 
 DROP PROCEDURE add_task;
-CREATE PROCEDURE add_task(IN task_name nvarchar(255), IN table_name nvarchar(255), IN analysis_config nvarchar(255), IN author nvarchar(255)) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE add_task(IN task_name nvarchar(255), IN table_name nvarchar(255), IN er_analysis_config nvarchar(255), IN author nvarchar(255)) LANGUAGE SQLSCRIPT AS
 BEGIN
-    INSERT INTO TASKS (name, domain, config, author) VALUES (task_name, table_name, analysis_config, author);
-    EXECUTE IMMEDIATE 'CREATE COLUMN TABLE ' || table_name || ' (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB)';
-    EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX INDEX_' || table_name || ' ON "' || table_name || '"("TEXT") CONFIGURATION ''' || analysis_config || ''' TEXT ANALYSIS ON';
+    INSERT INTO TASKS (name, domain, config, author) VALUES (task_name, table_name, er_analysis_config, author);
+    EXECUTE IMMEDIATE 'CREATE COLUMN TABLE ' || table_name || ' (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB, ER_TEXT NCLOB)';
+    EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX INDEX_' || table_name || ' ON "' || table_name || '"("TEXT") LANGUAGE DETECTION (''EN'') ASYNC PHRASE INDEX RATIO 0.0 CONFIGURATION ''LINGANALYSIS_FULL'' SEARCH ONLY OFF FAST PREPROCESS OFF TEXT ANALYSIS ON TOKEN SEPARATORS ''\/;,.:-_()[]<>!?*@+{}="&#$~|''';
+    EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
 END;
 
 DROP PROCEDURE add_document;
@@ -33,7 +34,7 @@ BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task;
     INSERT INTO DOCUMENTS VALUES (document_id, task);
-    EXECUTE IMMEDIATE 'INSERT INTO ' || :table_id || ' VALUES (''' || document_id || ''', ''' || document_text || ''')';
+    EXECUTE IMMEDIATE 'INSERT INTO ' || :table_id || ' VALUES (''' || document_id || ''', ''' || document_text || ''', ''' || document_text || ''')';
 END;
 
 DROP PROCEDURE delete_document;
@@ -59,4 +60,12 @@ BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
     EXECUTE IMMEDIATE 'select * from "$TA_INDEX_' || :table_id || '"';
+END;
+
+DROP PROCEDURE get_er_index;
+CREATE PROCEDURE get_er_index(IN document_id varchar(255)) LANGUAGE SQLSCRIPT AS
+BEGIN
+    DECLARE table_id nvarchar(255);
+    SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
+    EXECUTE IMMEDIATE 'select * from "$TA_ER_INDEX_' || :table_id || '"';
 END;
