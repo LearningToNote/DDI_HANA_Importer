@@ -10,7 +10,7 @@ CREATE COLUMN TABLE "TASKS" (
 );
 
 -- Example Task:
---   CALL add_task('Biomedical Domain', 'BIO_TEXTS', 'LTN::ltn_analysis', 'dr.schneider');
+--   CALL add_task('Biomedical Domain', 'BIO_TEXTS', 'LTN::ltn_analysis', 'dr.schneider', ?);
 --
 -- Parameters:
 --   NAME       Some user-friendly name for the task
