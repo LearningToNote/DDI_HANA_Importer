@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 import os
 import sys
-import importlib
 import datetime
 
 import inserter_hana as inserter
@@ -36,7 +35,7 @@ if initial:
     print "Done."
 
 for filename in os.listdir(filepath):
-    if (".xml" in filename):
+    if ".xml" in filename:
         files.append(filepath + filename)
 
 for filename in files:
@@ -83,7 +82,7 @@ for filename in files:
             text_offset += len(sentence_text) + 1
 
         text = ' '.join(sentences)
-        documents.append( (doc_id, text) )
-        user_documents.append( (user_doc_id, USERNAME, doc_id, 1, datetime.datetime.now(), datetime.datetime.now()) )
+        documents.append((doc_id, text))
+        user_documents.append((user_doc_id, USERNAME, doc_id, 1, datetime.datetime.now(), datetime.datetime.now()))
 
         inserter.store(documents, user_documents, entities, pairs, offsets)
