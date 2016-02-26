@@ -9,6 +9,24 @@ CREATE COLUMN TABLE "TASKS" (
     "AUTHOR" VARCHAR(255)
 );
 
+DROP TYPE T_INDEX;
+CREATE TYPE T_INDEX AS TABLE ("DOCUMENT_ID" VARCHAR(255),
+	 "TA_RULE" NVARCHAR(200),
+	 "TA_COUNTER" BIGINT CS_FIXED,
+	 "TA_TOKEN" NVARCHAR(5000),
+	 "TA_LANGUAGE" NVARCHAR(2),
+	 "TA_TYPE" NVARCHAR(100),
+	 "TA_NORMALIZED" NVARCHAR(5000),
+	 "TA_STEM" NVARCHAR(5000),
+	 "TA_PARAGRAPH" INTEGER CS_INT,
+	 "TA_SENTENCE" INTEGER CS_INT,
+	 "TA_CREATED_AT" LONGDATE CS_LONGDATE,
+	 "TA_OFFSET" BIGINT CS_FIXED,
+	 "TA_PARENT" BIGINT CS_FIXED);
+
+DROP TYPE T_DOCUMENT;
+CREATE TYPE T_DOCUMENT AS TABLE ("DOCUMENT_ID" VARCHAR(255), "TEXT" NCLOB);
+
 -- Example Task:
 --   CALL add_task('Biomedical Domain', 'BIO_TEXTS', 'LTN::ltn_analysis', 'dr.schneider', ?);
 --
@@ -48,25 +66,36 @@ BEGIN
 END;
 
 DROP PROCEDURE get_document_content;
-CREATE PROCEDURE get_document_content(IN document_id varchar(255)) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE get_document_content(IN document_id varchar(255), OUT document T_DOCUMENT) LANGUAGE SQLSCRIPT AS
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM TASKS t JOIN DOCUMENTS d ON d.task = t.id WHERE d.id = document_id;
-    EXECUTE IMMEDIATE 'select * from ' || :table_id || ' where id = ''' || document_id || '''';
+    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_DOCUMENT;
+    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT document_id, text FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
+    document = SELECT * FROM "#temp";
+    DROP TABLE "#temp";
 END;
 
 DROP PROCEDURE get_fulltext_index;
-CREATE PROCEDURE get_fulltext_index(IN document_id varchar(255)) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE get_fulltext_index(IN document_id varchar(255), OUT o_index T_INDEX) LANGUAGE SQLSCRIPT AS
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
-    EXECUTE IMMEDIATE 'select * from "$TA_INDEX_' || :table_id || '"';
+    table_id := '$TA_INDEX_' || table_id;
+    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_INDEX;
+    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT * FROM "' || :table_id || '";';
+    o_index = SELECT * FROM "#temp";
+    DROP TABLE "#temp";
 END;
 
 DROP PROCEDURE get_er_index;
-CREATE PROCEDURE get_er_index(IN document_id varchar(255)) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE get_er_index(IN document_id varchar(255), OUT o_index T_INDEX) LANGUAGE SQLSCRIPT AS
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
-    EXECUTE IMMEDIATE 'select * from "$TA_ER_INDEX_' || :table_id || '"';
+    table_id := '$TA_ER_INDEX_' || table_id;
+    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_INDEX;
+    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT * FROM "' || :table_id || '"';
+    o_index = SELECT * FROM "#temp";
+    DROP TABLE "#temp";
 END;
