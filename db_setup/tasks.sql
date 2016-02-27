@@ -24,9 +24,6 @@ CREATE TYPE T_INDEX AS TABLE ("DOCUMENT_ID" VARCHAR(255),
 	 "TA_OFFSET" BIGINT CS_FIXED,
 	 "TA_PARENT" BIGINT CS_FIXED);
 
-DROP TYPE T_DOCUMENT;
-CREATE TYPE T_DOCUMENT AS TABLE ("DOCUMENT_ID" VARCHAR(255), "TEXT" NCLOB);
-
 -- Example Task:
 --   CALL add_task('Biomedical Domain', 'BIO_TEXTS', 'LTN::ltn_analysis', 'dr.schneider', ?);
 --
@@ -66,13 +63,13 @@ BEGIN
 END;
 
 DROP PROCEDURE get_document_content;
-CREATE PROCEDURE get_document_content(IN document_id varchar(255), OUT document T_DOCUMENT) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE get_document_content(IN document_id varchar(255), text NCLOB) LANGUAGE SQLSCRIPT AS
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM TASKS t JOIN DOCUMENTS d ON d.task = t.id WHERE d.id = document_id;
     CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_DOCUMENT;
     EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT document_id, text FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
-    document = SELECT * FROM "#temp";
+    text = SELECT text FROM "#temp";
     DROP TABLE "#temp";
 END;
 
