@@ -6,10 +6,10 @@ import math
 
 import pyhdb
 import pyhdb.exceptions
+from pyhdb.protocol.lobs import NClob
 
 CHUNK_SIZE = 1000
 
-#Load credentials
 with open("../secrets.json") as f:
     secrets = json.load(f)
 
@@ -21,6 +21,7 @@ connection = pyhdb.connect(
 )
 
 cursor = connection.cursor()
+
 
 def insert_many(statement, values):
     if len(values) > 0:
@@ -35,18 +36,53 @@ def insert_many(statement, values):
         except pyhdb.exceptions.DatabaseError as e:
             print e
 
+
 def store_user(id, name, token, description, image):
-    cursor.execute("INSERT INTO LEARNING_TO_NOTE.USERS VALUES(?,?,?,?,?)", (id, name, token, description, image))
+    cursor.execute("INSERT INTO LTN_DEVELOP.USERS VALUES(?,?,?,?,?)", (id, name, token, description, image))
     connection.commit()
+
 
 def insert_types(types):
-    insert_many("INSERT INTO LEARNING_TO_NOTE.TYPES VALUES (?,?,?,?,?)", types)
+    insert_many("INSERT INTO LTN_DEVELOP.TYPES VALUES (?,?,?,?,?)", types)
     connection.commit()
 
-def store(documents, user_documents, entities, pairs, offsets):
-    insert_many("INSERT INTO LEARNING_TO_NOTE.DOCUMENTS VALUES (?,?)", documents)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.USER_DOCUMENTS VALUES (?,?,?,?,?,?)", user_documents)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES (?,?,?,?,?)", entities)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES (?,?,?,?,?,?)", pairs)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.OFFSETS VALUES (?,?,?,?)", offsets)
+
+def create_task(username):
+    task = 1
+    try:
+        sql_to_prepare = 'CALL LTN_DEVELOP.add_task (?, ?, ?, ?, ?)'
+        params = {
+            'TASK_NAME': 'Biomedical Domain (Drug-Drug-Interactions)',
+            'TABLE_NAME': 'BIO_TEXTS',
+            'ER_ANALYSIS_CONFIG': 'LTN::ltn_analysis',
+            'AUTHOR': username,
+            'TASK_ID': None
+        }
+        psid = cursor.prepare(sql_to_prepare)
+        ps = cursor.get_prepared_statement(psid)
+        cursor.execute_prepared(ps, [params])
+        task = cursor.fetchone()[0][0]
+    except Exception, e:
+        print 'Warning: ', e
+    return task
+
+
+def store(documents, user_documents, entities, pairs, offsets, task):
+    for document in documents:
+        try:
+            sql_to_prepare = 'CALL LTN_DEVELOP.add_document (?, ?, ?)'
+            params = {
+                'DOCUMENT_ID': document[0],
+                'DOCUMENT_TEXT': NClob(document[1].replace("'", "''")),
+                'TASK': task
+            }
+            psid = cursor.prepare(sql_to_prepare)
+            ps = cursor.get_prepared_statement(psid)
+            cursor.execute_prepared(ps, [params])
+        except Exception, e:
+            print 'Error: ', e
+    insert_many("INSERT INTO LTN_DEVELOP.USER_DOCUMENTS VALUES (?,?,?,?,?,?)", user_documents)
+    insert_many("INSERT INTO LTN_DEVELOP.ENTITIES VALUES (?,?,?,?,?)", entities)
+    insert_many("INSERT INTO LTN_DEVELOP.PAIRS VALUES (?,?,?,?,?,?)", pairs)
+    insert_many("INSERT INTO LTN_DEVELOP.OFFSETS VALUES (?,?,?,?)", offsets)
     connection.commit()

@@ -6,7 +6,7 @@ import datetime
 import inserter_hana as inserter
 
 
-if len(sys.argv) < 4:
+if len(sys.argv) != 4:
     print 'Usage: python import.py <initial> <username> <path>'
     print '\t initial: whether types an users should be created'
     print '\t username: name of importer user, e.g. DDI-IMPORTER'
@@ -19,19 +19,26 @@ filepath = os.path.join(sys.argv[3], '')
 files = []
 e_id_counter = 0
 types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
-relation_types = {'mechanism' : 4, 'effect' : 5, 'advise' : 6, 'int' : 7}
+relation_types = {'mechanism': 4, 'effect': 5, 'advise': 6, 'int': 7}
+task = None
 
 if initial:
     print "Inserting types..."
 
-    tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-1", u"DrugDrugInteraction", item[0].encode('utf-8').strip()), types.items())
-    relation_tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-R-1", u"DDI-Relations", item[0].encode('utf-8').strip()), relation_types.items())
+    tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-1", u"DrugDrugInteraction",
+                               item[0].encode('utf-8').strip()), types.items())
+    relation_tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-R-1",
+                                        u"DDI-Relations", item[0].encode('utf-8').strip()), relation_types.items())
     inserter.insert_types(tuples)
     inserter.insert_types(relation_tuples)
     print "Done."
 
     print "Inserting User..."
-    inserter.store_user(USERNAME, "DDI", "", "Drug-Drug Interaction Corpus Importer", "")
+    inserter.store_user(USERNAME, USERNAME, "", "Drug-Drug Interaction Corpus Importer", "")
+    print "Done."
+
+    print "Inserting Task..."
+    task = inserter.create_task(USERNAME)
     print "Done."
 
 for filename in os.listdir(filepath):
@@ -77,7 +84,7 @@ for filename in files:
                 pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, relation_types[pair_type], pair_type))
+                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, relation_types.get(pair_type, None), pair_type))
 
             text_offset += len(sentence_text) + 1
 
@@ -85,4 +92,4 @@ for filename in files:
         documents.append((doc_id, text))
         user_documents.append((user_doc_id, USERNAME, doc_id, 1, datetime.datetime.now(), datetime.datetime.now()))
 
-        inserter.store(documents, user_documents, entities, pairs, offsets)
+    inserter.store(documents, user_documents, entities, pairs, offsets, task)
