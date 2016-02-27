@@ -61,7 +61,7 @@ def create_task(username):
         psid = cursor.prepare(sql_to_prepare)
         ps = cursor.get_prepared_statement(psid)
         cursor.execute_prepared(ps, [params])
-        task = cursor.fetchone()[0][0]
+        task = cursor.fetchone()[0]
     except Exception, e:
         print 'Warning: ', e
     return task
