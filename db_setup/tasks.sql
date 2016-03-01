@@ -58,7 +58,7 @@ CREATE PROCEDURE delete_document(IN document_id varchar(255)) LANGUAGE SQLSCRIPT
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
-    EXECUTE IMMEDIATE 'DELETE FROM ' || :table_id || ' WHERE id = ''' || document_id || '''';
+    EXECUTE IMMEDIATE 'DELETE FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
     DELETE FROM DOCUMENTS WHERE id = document_id;
 END;
 
