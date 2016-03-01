@@ -85,6 +85,18 @@ BEGIN
     DROP TABLE "#temp";
 END;
 
+DROP PROCEDURE get_fulltext_index_for_task;
+CREATE PROCEDURE get_fulltext_index_for_task(IN task_id Int, OUT o_index T_INDEX) LANGUAGE SQLSCRIPT AS
+BEGIN
+    DECLARE table_id nvarchar(255);
+    SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task_id;
+    table_id := '$TA_INDEX_' || table_id;
+    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_INDEX;
+    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT * FROM "' || :table_id || '";';
+    o_index = SELECT * FROM "#temp";
+    DROP TABLE "#temp";
+END;
+
 DROP PROCEDURE get_er_index;
 CREATE PROCEDURE get_er_index(IN document_id varchar(255), OUT o_index T_INDEX) LANGUAGE SQLSCRIPT AS
 BEGIN
@@ -93,6 +105,18 @@ BEGIN
     table_id := '$TA_ER_INDEX_' || table_id;
     CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_INDEX;
     EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT * FROM "' || :table_id || '"';
+    o_index = SELECT * FROM "#temp";
+    DROP TABLE "#temp";
+END;
+
+DROP PROCEDURE get_er_index_for_task;
+CREATE PROCEDURE get_er_index_for_task(IN task_id Int, OUT o_index T_INDEX) LANGUAGE SQLSCRIPT AS
+BEGIN
+    DECLARE table_id nvarchar(255);
+    SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task_id;
+    table_id := '$TA_ER_INDEX_' || table_id;
+    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_INDEX;
+    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT * FROM "' || :table_id || '";';
     o_index = SELECT * FROM "#temp";
     DROP TABLE "#temp";
 END;
