@@ -1,4 +1,4 @@
-SET SCHEMA LEARNING_TO_NOTE;
+SET SCHEMA LTN_DEVELOP;
 
 DROP TABLE "TASKS";
 CREATE COLUMN TABLE "TASKS" (
@@ -11,18 +11,18 @@ CREATE COLUMN TABLE "TASKS" (
 
 DROP TYPE T_INDEX;
 CREATE TYPE T_INDEX AS TABLE ("DOCUMENT_ID" VARCHAR(255),
-	 "TA_RULE" NVARCHAR(200),
-	 "TA_COUNTER" BIGINT CS_FIXED,
-	 "TA_TOKEN" NVARCHAR(5000),
-	 "TA_LANGUAGE" NVARCHAR(2),
-	 "TA_TYPE" NVARCHAR(100),
-	 "TA_NORMALIZED" NVARCHAR(5000),
-	 "TA_STEM" NVARCHAR(5000),
-	 "TA_PARAGRAPH" INTEGER CS_INT,
-	 "TA_SENTENCE" INTEGER CS_INT,
-	 "TA_CREATED_AT" LONGDATE CS_LONGDATE,
-	 "TA_OFFSET" BIGINT CS_FIXED,
-	 "TA_PARENT" BIGINT CS_FIXED);
+     "TA_RULE" NVARCHAR(200),
+     "TA_COUNTER" BIGINT CS_FIXED,
+     "TA_TOKEN" NVARCHAR(5000),
+     "TA_LANGUAGE" NVARCHAR(2),
+     "TA_TYPE" NVARCHAR(100),
+     "TA_NORMALIZED" NVARCHAR(5000),
+     "TA_STEM" NVARCHAR(5000),
+     "TA_PARAGRAPH" INTEGER CS_INT,
+     "TA_SENTENCE" INTEGER CS_INT,
+     "TA_CREATED_AT" LONGDATE CS_LONGDATE,
+     "TA_OFFSET" BIGINT CS_FIXED,
+     "TA_PARENT" BIGINT CS_FIXED);
 
 -- Example Task:
 --   CALL add_task('Biomedical Domain', 'BIO_TEXTS', 'LTN::ltn_analysis', 'dr.schneider', ?);
@@ -44,6 +44,29 @@ BEGIN
     EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
 END;
 
+DROP PROCEDURE update_task;
+CREATE PROCEDURE update_task(IN task_id Int, IN task_name nvarchar(255), IN table_name nvarchar(255), IN er_analysis_config nvarchar(255), IN author nvarchar(255)) LANGUAGE SQLSCRIPT AS
+BEGIN
+    DECLARE table_id nvarchar(255);
+    SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task_id;
+    IF (table_name = table_id) THEN BEGIN
+        EXECUTE IMMEDIATE 'DROP TABLE "' || table_id || '" CASCADE'
+        EXECUTE IMMEDIATE 'CREATE COLUMN TABLE ' || table_name || ' (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB, ER_TEXT NCLOB)';
+        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX INDEX_' || table_name || ' ON "' || table_name || '"("TEXT") LANGUAGE DETECTION (''EN'') ASYNC PHRASE INDEX RATIO 0.0 CONFIGURATION ''LINGANALYSIS_FULL'' SEARCH ONLY OFF FAST PREPROCESS OFF TEXT ANALYSIS ON TOKEN SEPARATORS ''\/;,.:-_()[]<>!?*@+{}="&#$~|''';
+        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
+    END
+    UPDATE TASKS SET ("NAME" = task_name, "DOMAIN" = table_name, "CONFIG" = er_analysis_config, "AUTHOR" = author) WHERE "ID" = task_id;
+END;
+
+DROP PROCEDURE delete_task;
+CREATE PROCEDURE delete_task(IN task_id Int) LANGUAGE SQLSCRIPT AS
+BEGIN
+    DECLARE table_id nvarchar(255);
+    SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task_id;
+    EXECUTE IMMEDIATE 'DROP TABLE "' || table_id || '" CASCADE';
+    DELETE FROM TASKS WHERE "ID" = task_id;
+END;
+
 DROP PROCEDURE add_document;
 CREATE PROCEDURE add_document(IN document_id varchar(255), IN document_text NCLOB, IN task INT) LANGUAGE SQLSCRIPT AS
 BEGIN
@@ -63,13 +86,13 @@ BEGIN
 END;
 
 DROP PROCEDURE get_document_content;
-CREATE PROCEDURE get_document_content(IN document_id varchar(255), text NCLOB) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE get_document_content(IN document_id varchar(255), OUT text NCLOB) LANGUAGE SQLSCRIPT AS
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM TASKS t JOIN DOCUMENTS d ON d.task = t.id WHERE d.id = document_id;
-    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" LIKE T_DOCUMENT;
+    CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" ("DOCUMENT_ID" varchar(255), "TEXT" nclob);
     EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT document_id, text FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
-    text = SELECT text FROM "#temp";
+    SELECT "TEXT" INTO text FROM "#temp";
     DROP TABLE "#temp";
 END;
 
