@@ -1,4 +1,4 @@
-# this assumes a schema db called LEARNING_TO_NOTE is created
+# this assumes a schema db called LTN_DEVELOP is created
 # use db_setup/hana.sql
 
 import json
@@ -38,19 +38,19 @@ def insert_many(statement, values):
 
 
 def store_user(id, name, token, description, image):
-    cursor.execute("INSERT INTO LEARNING_TO_NOTE.USERS VALUES(?,?,?,?,?)", (id, name, token, description, image))
+    cursor.execute("INSERT INTO LTN_DEVELOP.USERS VALUES(?,?,?,?,?)", (id, name, token, description, image))
     connection.commit()
 
 
 def insert_types(types):
-    insert_many("INSERT INTO LEARNING_TO_NOTE.TYPES VALUES (?,?,?,?,?)", types)
+    insert_many("INSERT INTO LTN_DEVELOP.TYPES VALUES (?,?,?,?,?)", types)
     connection.commit()
 
 
 def create_task(username):
     task = 1
     try:
-        sql_to_prepare = 'CALL LEARNING_TO_NOTE.add_task (?, ?, ?, ?, ?)'
+        sql_to_prepare = 'CALL LTN_DEVELOP.add_task (?, ?, ?, ?, ?)'
         params = {
             'TASK_NAME': 'Biomedical Domain (Drug-Drug-Interactions)',
             'TABLE_NAME': 'BIO_TEXTS',
@@ -70,7 +70,7 @@ def create_task(username):
 def store(documents, user_documents, entities, pairs, offsets, task):
     for document in documents:
         try:
-            sql_to_prepare = 'CALL LEARNING_TO_NOTE.add_document (?, ?, ?)'
+            sql_to_prepare = 'CALL LTN_DEVELOP.add_document (?, ?, ?)'
             params = {
                 'DOCUMENT_ID': document[0],
                 'DOCUMENT_TEXT': NClob(document[1].replace("'", "''")),
@@ -81,8 +81,8 @@ def store(documents, user_documents, entities, pairs, offsets, task):
             cursor.execute_prepared(ps, [params])
         except Exception, e:
             print 'Error: ', e
-    insert_many("INSERT INTO LEARNING_TO_NOTE.USER_DOCUMENTS VALUES (?,?,?,?,?,?)", user_documents)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.ENTITIES VALUES (?,?,?,?,?)", entities)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.PAIRS VALUES (?,?,?,?,?,?)", pairs)
-    insert_many("INSERT INTO LEARNING_TO_NOTE.OFFSETS VALUES (?,?,?,?)", offsets)
+    insert_many("INSERT INTO LTN_DEVELOP.USER_DOCUMENTS VALUES (?,?,?,?,?,?)", user_documents)
+    insert_many("INSERT INTO LTN_DEVELOP.ENTITIES VALUES (?,?,?,?,?)", entities)
+    insert_many("INSERT INTO LTN_DEVELOP.PAIRS VALUES (?,?,?,?,?,?)", pairs)
+    insert_many("INSERT INTO LTN_DEVELOP.OFFSETS VALUES (?,?,?,?)", offsets)
     connection.commit()
