@@ -69,14 +69,14 @@ for filename in files:
                 entity_type = entity.get('type')
                 entity_text = entity.get('text')
                 e_id = entity.get('id')
-                entity_obj = (e_id, user_doc_id, types[entity_type], entity_type, entity_text)
+                entity_obj = (e_id, user_doc_id, types[entity_type], None, entity_text)
                 entities.append(entity_obj)
 
                 offset_list = entity.get('charOffset').split(';')
                 for offset in offset_list:
                     offset_start, offset_end = map(int, offset.split('-'))
                     offset_start += text_offset
-                    offset_end += text_offset + 1 # end offsets in DDI are offset by 1
+                    offset_end += text_offset + 1  # end offsets in DDI are offset by 1
                     offsets.append((offset_start, offset_end, entity_obj[0], user_doc_id))
 
             for pair in sentence.findall('pair'):
