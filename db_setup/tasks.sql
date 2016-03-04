@@ -73,7 +73,7 @@ BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task;
     INSERT INTO DOCUMENTS VALUES (document_id, task);
-    EXECUTE IMMEDIATE 'INSERT INTO ' || :table_id || ' VALUES (''' || document_id || ''', ''' || document_text || ''', ''' || document_text || ''')';
+    EXECUTE IMMEDIATE 'INSERT INTO ' || :table_id || ' VALUES (''' || document_id || ''', ''' || document_text || ''', ''' || lower(document_text) || ''')';
 END;
 
 DROP PROCEDURE delete_document;
