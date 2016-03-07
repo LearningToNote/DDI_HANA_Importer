@@ -40,6 +40,12 @@ if initial:
     print "Inserting Task..."
     task = inserter.create_task(USERNAME)
     print "Done."
+else:
+    print "Preparing Task..."
+    task = inserter.get_task_id()
+    if task is None:
+        task = inserter.create_task(USERNAME)
+    print "Done."
 
 for filename in os.listdir(filepath):
     if ".xml" in filename:

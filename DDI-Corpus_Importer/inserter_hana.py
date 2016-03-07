@@ -9,6 +9,7 @@ import pyhdb.exceptions
 from pyhdb.protocol.lobs import NClob
 
 CHUNK_SIZE = 1000
+TASK_NAME = 'Biomedical Domain (Drug-Drug-Interactions)'
 
 with open("../secrets.json") as f:
     secrets = json.load(f)
@@ -52,7 +53,7 @@ def create_task(username):
     try:
         sql_to_prepare = 'CALL LTN_DEVELOP.add_task (?, ?, ?, ?, ?)'
         params = {
-            'TASK_NAME': 'Biomedical Domain (Drug-Drug-Interactions)',
+            'TASK_NAME': TASK_NAME,
             'TABLE_NAME': 'BIO_TEXTS',
             'ER_ANALYSIS_CONFIG': 'LTN::ltn_analysis',
             'AUTHOR': username,
@@ -65,6 +66,14 @@ def create_task(username):
     except Exception, e:
         print 'Warning: ', e
     return task
+
+
+def get_task_id():
+    try:
+        cursor.execute("SELECT id FROM LTN_DEVELOP.TASKS WHERE name = ?", (TASK_NAME, ))
+        return cursor.fetchone()[0]
+    except:
+        return None
 
 
 def store(documents, user_documents, entities, pairs, offsets, task):
