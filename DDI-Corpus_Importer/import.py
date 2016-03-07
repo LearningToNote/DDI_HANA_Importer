@@ -8,7 +8,7 @@ import inserter_hana as inserter
 
 if len(sys.argv) != 4:
     print 'Usage: python import.py <initial> <username> <path>'
-    print '\t initial: whether types an users should be created'
+    print '\t initial: whether types and users should be created'
     print '\t username: name of importer user, e.g. DDI-IMPORTER'
     print '\t path: path to DDI xml files, e.g. ../../DDICorpus/Train/DrugBank/'
     exit()
