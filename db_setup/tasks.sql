@@ -45,17 +45,25 @@ BEGIN
 END;
 
 DROP PROCEDURE update_task;
-CREATE PROCEDURE update_task(IN task_id Int, IN task_name nvarchar(255), IN table_name nvarchar(255), IN er_analysis_config nvarchar(255), IN author nvarchar(255)) LANGUAGE SQLSCRIPT AS
+CREATE PROCEDURE update_task(IN task_id Int, IN task_name nvarchar(255), IN table_name nvarchar(255), IN er_analysis_config nvarchar(255), IN new_author nvarchar(255)) LANGUAGE SQLSCRIPT AS
 BEGIN
-    DECLARE table_id nvarchar(255);
-    SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task_id;
-    IF (table_name = table_id) THEN BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE "' || table_id || '" CASCADE'
+    DECLARE old_table varchar(255);
+    DECLARE old_config varchar(255);
+
+    SELECT concat(t.domain, '') INTO old_table FROM TASKS t WHERE t.id = task_id;
+    SELECT concat(t.config, '') INTO old_config FROM TASKS t WHERE t.id = task_id;
+
+    IF table_name != old_table THEN
+        DELETE FROM DOCUMENTS WHERE task = task_id;
+        EXECUTE IMMEDIATE 'DROP TABLE "' || old_table || '" CASCADE';
         EXECUTE IMMEDIATE 'CREATE COLUMN TABLE ' || table_name || ' (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB, ER_TEXT NCLOB)';
         EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX INDEX_' || table_name || ' ON "' || table_name || '"("TEXT") LANGUAGE DETECTION (''EN'') ASYNC PHRASE INDEX RATIO 0.0 CONFIGURATION ''LINGANALYSIS_FULL'' SEARCH ONLY OFF FAST PREPROCESS OFF TEXT ANALYSIS ON TOKEN SEPARATORS ''\/;,.:-_()[]<>!?*@+{}="&#$~|''';
         EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
-    END
-    UPDATE TASKS SET ("NAME" = task_name, "DOMAIN" = table_name, "CONFIG" = er_analysis_config, "AUTHOR" = author) WHERE "ID" = task_id;
+    ELSEIF old_config != er_analysis_config THEN
+        EXECUTE IMMEDIATE 'DROP FULLTEXT INDEX "ER_INDEX_' || old_table || '"';
+        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
+    END IF;
+    UPDATE TASKS SET "NAME" = task_name, "DOMAIN" = table_name, "CONFIG" = er_analysis_config, "AUTHOR" = new_author WHERE "ID" = task_id;
 END;
 
 DROP PROCEDURE delete_task;
