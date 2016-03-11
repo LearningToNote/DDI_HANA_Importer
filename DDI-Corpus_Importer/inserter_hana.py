@@ -99,3 +99,7 @@ def store(documents, user_documents, entities, pairs, offsets, task):
 def store_pos_tags():
     cursor.execute("DELETE FROM POS_TAGS;")
     cursor.execute("INSERT INTO POS_TAGS(POS) SELECT DISTINCT TA_TYPE FROM LTN_DEVELOP.$TA_INDEX_BIO_TEXTS;")
+
+def insertStopWords(stopwords):
+    insert_many("INSERT INTO LTN_DEVELOP.STOPWORDS VALUES (?)", stopwords)
+

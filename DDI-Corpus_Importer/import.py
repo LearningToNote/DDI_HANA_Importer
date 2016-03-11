@@ -5,6 +5,12 @@ import datetime
 
 import inserter_hana as inserter
 
+def loadStopWords():
+    stops = []
+    with open('stopwords.txt', 'r') as f:
+        for line in f:
+            stops.append(line.translate(None, '\r\n'))
+    return stops
 
 if len(sys.argv) != 4:
     print 'Usage: python import.py <initial> <username> <path>'
@@ -39,6 +45,10 @@ if initial:
 
     print "Inserting Task..."
     task = inserter.create_task(USERNAME)
+
+    print "Inserting Stopwords"
+    inserter.insertStopWords(loadStopWords())
+
     print "Done."
 else:
     print "Preparing Task..."
