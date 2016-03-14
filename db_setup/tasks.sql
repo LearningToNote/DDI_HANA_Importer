@@ -41,7 +41,7 @@ BEGIN
     SELECT MAX(id) INTO task_id FROM TASKS;
     EXECUTE IMMEDIATE 'CREATE COLUMN TABLE "' || table_name || '" (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB, ER_TEXT NCLOB)';
     EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX "INDEX_' || table_name || '" ON "' || table_name || '"("TEXT") LANGUAGE DETECTION (''EN'', ''DE'') ASYNC PHRASE INDEX RATIO 0.0 CONFIGURATION ''LINGANALYSIS_FULL'' SEARCH ONLY OFF FAST PREPROCESS OFF TEXT ANALYSIS ON TOKEN SEPARATORS ''\/;,.:-_()[]<>!?*@+{}="&#$~|''';
-    EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX "ER_INDEX_' || table_name || '" ON "' || table_name || '"("ER_TEXT") LANGUAGE DETECTION (''EN'', ''DE'') CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
+    EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX "ER_INDEX_' || table_name || '" ON "' || table_name || '"("ER_TEXT") LANGUAGE DETECTION (''EN'') CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
 END;
 
 DROP PROCEDURE update_task;
@@ -58,10 +58,10 @@ BEGIN
         EXECUTE IMMEDIATE 'DROP TABLE "' || old_table || '" CASCADE';
         EXECUTE IMMEDIATE 'CREATE COLUMN TABLE ' || table_name || ' (DOCUMENT_ID VARCHAR(255) PRIMARY KEY, TEXT NCLOB, ER_TEXT NCLOB)';
         EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX INDEX_' || table_name || ' ON "' || table_name || '"("TEXT") LANGUAGE DETECTION (''EN'', ''DE'') ASYNC PHRASE INDEX RATIO 0.0 CONFIGURATION ''LINGANALYSIS_FULL'' SEARCH ONLY OFF FAST PREPROCESS OFF TEXT ANALYSIS ON TOKEN SEPARATORS ''\/;,.:-_()[]<>!?*@+{}="&#$~|''';
-        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT")LANGUAGE DETECTION (''EN'', ''DE'') CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
+        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT")LANGUAGE DETECTION (''EN'') CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
     ELSEIF old_config != er_analysis_config THEN
         EXECUTE IMMEDIATE 'DROP FULLTEXT INDEX "ER_INDEX_' || old_table || '"';
-        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") LANGUAGE DETECTION (''EN'', ''DE'') CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
+        EXECUTE IMMEDIATE 'CREATE FULLTEXT INDEX ER_INDEX_' || table_name || ' ON "' || table_name || '"("ER_TEXT") LANGUAGE DETECTION (''EN'') CONFIGURATION ''' || er_analysis_config || ''' TEXT ANALYSIS ON';
     END IF;
     UPDATE TASKS SET "NAME" = task_name, "DOMAIN" = table_name, "CONFIG" = er_analysis_config, "AUTHOR" = new_author WHERE "ID" = task_id;
 END;
