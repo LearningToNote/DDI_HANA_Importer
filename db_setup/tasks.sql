@@ -90,7 +90,12 @@ BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
     EXECUTE IMMEDIATE 'DELETE FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
-    DELETE FROM DOCUMENTS WHERE id = document_id;
+    DELETE FROM DOCUMENTS WHERE id = :document_id;
+    user_document_ids = SELECT ud.id FROM USER_DOCUMENTS ud WHERE ud.document_id = :document_id;
+    DELETE FROM OFFSETS WHERE USER_DOC_ID IN (SELECT ID FROM :user_document_ids);
+    DELETE FROM PAIRS WHERE USER_DOC_ID IN (SELECT ID FROM :user_document_ids);
+    DELETE FROM ENTITIES WHERE USER_DOC_ID IN (SELECT ID FROM :user_document_ids);
+    DELETE FROM USER_DOCUMENTS WHERE document_id = :document_id;
 END;
 
 DROP PROCEDURE get_document_content;
