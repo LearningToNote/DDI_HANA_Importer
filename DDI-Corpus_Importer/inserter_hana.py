@@ -56,7 +56,7 @@ def create_task(username):
             'TASK_NAME': TASK_NAME,
             'TABLE_NAME': 'BIO_TEXTS',
             'ER_ANALYSIS_CONFIG': 'LTN::ltn_analysis',
-            'AUTHOR': username,
+            'NEW_AUTHOR': username,
             'TASK_ID': None
         }
         psid = cursor.prepare(sql_to_prepare)
