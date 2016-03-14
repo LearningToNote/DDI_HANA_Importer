@@ -55,7 +55,7 @@ def create_task(username):
         params = {
             'TASK_NAME': TASK_NAME,
             'TABLE_NAME': 'BIO_TEXTS',
-            'ER_ANALYSIS_CONFIG': 'LTN::ltn_analysis',
+            'ER_ANALYSIS_CONFIG': 'LTN::bio_text_entity_recognition',
             'NEW_AUTHOR': username,
             'TASK_ID': None
         }
