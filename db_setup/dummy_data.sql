@@ -21,9 +21,6 @@ INSERT INTO OFFSETS VALUES (320, 356, 'XDDI-DrugBank.d532.s2.e2', 'dr.schneider_
 INSERT INTO ENTITIES VALUES ('XDDI-DrugBank.d532.s2.e3', 'dr.schneider_DDI-DrugBank.d532', 2, 'test', '');
 INSERT INTO OFFSETS VALUES (358, 385, 'XDDI-DrugBank.d532.s2.e3', 'dr.schneider_DDI-DrugBank.d532');
 
-INSERT INTO USERS VALUES ('jan', 'Jan Philipp Sachse', 'secret', '', '');
+INSERT INTO USERS VALUES ('jan', 'Jan Philipp Sachse', 'secret', '', 'https://cdn0.vox-cdn.com/thumbor/oBPM3rtYW8gtczQVi_80zqYABAo=/800x0/filters:no_upscale()/cdn0.vox-cdn.com/uploads/chorus_asset/file/3893454/win10_skype_320x320.0.gif');
 INSERT INTO USERS VALUES ('mariana', 'Dr. Mariana Neves', 'mariana', 'Research Assistant', 'http://hpi.de/fileadmin/user_upload/fachgebiete/plattner/people/Neves_Mariana_Portrait_120x160.jpg');
 INSERT INTO USERS VALUES ('ralf', 'Dr. Ralf Krestel', 'ralf', 'Head of Web Science Research Group & Senior Researcher at HPI', 'http://hpi.de/fileadmin/_processed_/csm_IMG_0675_492ee9dc22.jpg');
-
-INSERT INTO USERS VALUES ('vendER', 'Entity Recognition Service', '', '', '');
-INSERT INTO USERS VALUES ('victor_predictor', 'Prediction Engine', '', '', '');
