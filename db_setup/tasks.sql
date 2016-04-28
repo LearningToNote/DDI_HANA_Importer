@@ -81,7 +81,7 @@ BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task;
     INSERT INTO DOCUMENTS VALUES (document_id, task);
-    EXECUTE IMMEDIATE 'INSERT INTO ' || :table_id || ' VALUES (''' || document_id || ''', ''' || document_text || ''', ''' || lower(document_text) || ''')';
+    EXECUTE IMMEDIATE 'INSERT INTO "' || :table_id || '" VALUES (''' || document_id || ''', ''' || document_text || ''', ''' || lower(document_text) || ''')';
 END;
 
 DROP PROCEDURE delete_document;
@@ -89,7 +89,7 @@ CREATE PROCEDURE delete_document(IN document_id varchar(255)) LANGUAGE SQLSCRIPT
 BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM tasks t JOIN documents d ON d.task = t.id WHERE d.id = document_id;
-    EXECUTE IMMEDIATE 'DELETE FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
+    EXECUTE IMMEDIATE 'DELETE FROM "' || :table_id || '" WHERE document_id = ''' || document_id || '''';
     DELETE FROM DOCUMENTS WHERE id = :document_id;
     user_document_ids = SELECT ud.id FROM USER_DOCUMENTS ud WHERE ud.document_id = :document_id;
     DELETE FROM OFFSETS WHERE USER_DOC_ID IN (SELECT ID FROM :user_document_ids);
@@ -104,7 +104,7 @@ BEGIN
     DECLARE table_id nvarchar(255);
     SELECT concat(t.domain, '') INTO table_id FROM TASKS t JOIN DOCUMENTS d ON d.task = t.id WHERE d.id = document_id;
     CREATE LOCAL TEMPORARY COLUMN TABLE "#temp" ("DOCUMENT_ID" varchar(255), "TEXT" nclob);
-    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT document_id, text FROM ' || :table_id || ' WHERE document_id = ''' || document_id || '''';
+    EXECUTE IMMEDIATE 'INSERT INTO "#temp" SELECT document_id, text FROM "' || :table_id || '" WHERE document_id = ''' || document_id || '''';
     SELECT "TEXT" INTO text FROM "#temp";
     DROP TABLE "#temp";
 END;
