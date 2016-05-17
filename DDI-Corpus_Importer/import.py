@@ -47,7 +47,11 @@ if initial:
     task = inserter.create_task(USERNAME)
 
     print "Inserting Stopwords"
-    inserter.insertStopWords(loadStopWords())
+    inserter.insert_stop_words(loadStopWords())
+
+    print "Linking Types..."
+    inserter.insert_task_types(range(0, 4), relation=0, task=task)
+    inserter.insert_task_types(range(4, 8), relation=1, task=task)
 
     print "Done."
 else:
