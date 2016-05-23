@@ -108,8 +108,7 @@ def insert_stop_words(stopwords):
     connection.commit()
 
 
-def insert_task_types(index_range, relation, task):
-    for index in index_range:
-        cursor.execute("INSERT INTO LTN_DEVELOP.TASK_TYPES(TASK_ID, TYPE_ID, RELATION) VALUES (?, ?, ?)",
-                       (task, index, relation))
+def insert_task_types(index, relation, task, label):
+    cursor.execute("INSERT INTO LTN_DEVELOP.TASK_TYPES(LABEL, TASK_ID, TYPE_ID, RELATION) VALUES (?, ?, ?, ?)",
+                   (label, task, index, relation))
     connection.commit()

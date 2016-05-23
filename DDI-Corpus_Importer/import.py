@@ -50,8 +50,10 @@ if initial:
     inserter.insert_stop_words(loadStopWords())
 
     print "Linking Types..."
-    inserter.insert_task_types(range(0, 4), relation=0, task=task)
-    inserter.insert_task_types(range(4, 8), relation=1, task=task)
+    for key, value in types.items():
+        inserter.insert_task_types(value, relation=0, task=task, label=key)
+    for key, value in relation_types.items():
+        inserter.insert_task_types(value, relation=1, task=task, label=key)
 
     print "Done."
 else:
