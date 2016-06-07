@@ -1,5 +1,5 @@
 # this assumes a schema db called LTN_DEVELOP is created
-# use db_setup/hana.sql
+# use db_setup/schema.sql
 
 import json
 import math
@@ -40,11 +40,6 @@ def insert_many(statement, values):
 
 def store_user(id, name, token, description, image):
     cursor.execute("INSERT INTO LTN_DEVELOP.USERS VALUES(?,?,?,?,?)", (id, name, token, description, image))
-    connection.commit()
-
-
-def insert_types(types):
-    insert_many("INSERT INTO LTN_DEVELOP.TYPES VALUES (?,?,?,?,?)", types)
     connection.commit()
 
 
@@ -108,7 +103,12 @@ def insert_stop_words(stopwords):
     connection.commit()
 
 
-def insert_task_types(index, relation, task, label):
-    cursor.execute("INSERT INTO LTN_DEVELOP.TASK_TYPES(LABEL, TASK_ID, TYPE_ID, RELATION) VALUES (?, ?, ?, ?)",
-                   (label, task, index, relation))
+def insert_task_types(template, relation, task, label):
+    type_id = None
+    cursor.execute("SELECT ID FROM LTN_DEVELOP.TYPES WHERE CODE = ?", (template.base_type,))
+    base_type = cursor.fetchone()
+    if base_type:
+        type_id = base_type[0]
+    cursor.execute("INSERT INTO LTN_DEVELOP.TASK_TYPES(ID, LABEL, TASK_ID, TYPE_ID, RELATION) VALUES (?, ?, ?, ?, ?)",
+                   (template.id, label, task, type_id, relation))
     connection.commit()

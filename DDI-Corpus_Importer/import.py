@@ -5,7 +5,14 @@ import datetime
 
 import inserter_hana as inserter
 
-def loadStopWords():
+from collections import namedtuple
+
+
+Type = namedtuple("Type", ["id", "base_type"])
+NoType = Type(id=None, base_type=None)
+
+
+def load_stop_words():
     stops = []
     with open('stopwords.txt', 'r') as f:
         for line in f:
@@ -24,37 +31,36 @@ USERNAME = sys.argv[2]
 filepath = os.path.join(sys.argv[3], '')
 files = []
 e_id_counter = 0
-types = {'drug': 0, 'group': 1, 'brand': 2, 'drug_n': 3}
-relation_types = {'mechanism': 4, 'effect': 5, 'advise': 6, 'int': 7}
+types = {
+    'drug': Type(id=0, base_type='T200'),
+    'group': Type(1, 'T071'),
+    'brand': Type(2, 'T121'),
+    'drug_n': Type(3, 'T200')}
+relation_types = {
+    'mechanism': Type(4, 'T067'),
+    'effect': Type(5, 'T067'),
+    'advise': Type(6, 'T067'),
+    'int': Type(7, 'T067')}
 task = None
 
 if initial:
-    print "Inserting types..."
-
-    tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-1", u"DrugDrugInteraction",
-                               item[0].encode('utf-8').strip()), types.items())
-    relation_tuples = map(lambda item: (item[1], u"DDI-" + item[0].encode('utf-8').strip(), u"DDI-R-1",
-                                        u"DDI-Relations", item[0].encode('utf-8').strip()), relation_types.items())
-    inserter.insert_types(tuples)
-    inserter.insert_types(relation_tuples)
-    print "Done."
-
     print "Inserting User..."
     inserter.store_user(USERNAME, USERNAME, "", "Drug-Drug Interaction Corpus Importer", "")
     print "Done."
 
     print "Inserting Task..."
     task = inserter.create_task(USERNAME)
+    print "Done."
 
     print "Inserting Stopwords"
-    inserter.insert_stop_words(loadStopWords())
+    inserter.insert_stop_words(load_stop_words())
+    print "Done."
 
-    print "Linking Types..."
-    for key, value in types.items():
-        inserter.insert_task_types(value, relation=0, task=task, label=key)
-    for key, value in relation_types.items():
-        inserter.insert_task_types(value, relation=1, task=task, label=key)
-
+    print "Inserting Types..."
+    for label, template in types.items():
+        inserter.insert_task_types(template, relation=False, task=task, label=label)
+    for label, template in relation_types.items():
+        inserter.insert_task_types(template, relation=True, task=task, label=label)
     print "Done."
 else:
     print "Preparing Task..."
@@ -91,7 +97,7 @@ for filename in files:
                 entity_type = entity.get('type')
                 entity_text = entity.get('text')
                 e_id = entity.get('id')
-                entity_obj = (e_id, user_doc_id, types[entity_type], None, entity_text)
+                entity_obj = (e_id, user_doc_id, types.get(entity_type, NoType).id, None, entity_text)
                 entities.append(entity_obj)
 
                 offset_list = entity.get('charOffset').split(';')
@@ -106,7 +112,8 @@ for filename in files:
                 pair_e2 = pair.get('e2')
                 pair_ddi = 1 if pair.get('ddi') == "true" else 0
                 pair_type = pair.get('type')
-                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, relation_types.get(pair_type, None), pair_type))
+                pairs.append((pair_e1, pair_e2, user_doc_id, pair_ddi, relation_types.get(pair_type, NoType).id,
+                              pair_type))
 
             text_offset += len(sentence_text) + 1
 
