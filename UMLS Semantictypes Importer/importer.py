@@ -4,11 +4,12 @@ import pyhdb
 with open("../secrets.json") as f:
     secrets = json.load(f)
 
+details = secrets.get('database')
 connection = pyhdb.connect(
-    host=secrets['host'],
-    port=secrets['port'],
-    user=secrets['username'],
-    password=secrets['password']
+    host=details.get('host'),
+    port=details.get('port'),
+    user=details.get('username'),
+    password=details.get('password')
 )
 
 types = list()
