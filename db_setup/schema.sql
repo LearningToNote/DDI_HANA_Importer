@@ -170,6 +170,7 @@ BEGIN
     SELECT concat(t.domain, '') INTO table_id FROM tasks t WHERE t.id = task_id;
     EXECUTE IMMEDIATE 'DROP TABLE "' || table_id || '" CASCADE';
     DELETE FROM TASKS WHERE "ID" = task_id;
+    DELETE FROM DOCUMENTS WHERE "TASK" = task_id;
 END;
 
 DROP PROCEDURE add_document;
